@@ -113,7 +113,7 @@
 - ✅ **创建的文件**：`src/core/errors.ts` (179行)
 - ✅ **错误类型体系**：6种标准错误类型
   ```typescript
-  FinanceMCPError (基础错误类)
+  AIGroupMarketMCPError (基础错误类)
   ├── ValidationError    // 参数验证失败
   ├── ApiError          // API调用失败
   ├── NetworkError      // 网络连接问题

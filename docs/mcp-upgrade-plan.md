@@ -67,7 +67,7 @@
 // 当前代码
 const server = new Server(
   {
-    name: "FinanceMCP",
+    name: "aigroup-market-mcp",
     version: "1.0.0",
   },
   {

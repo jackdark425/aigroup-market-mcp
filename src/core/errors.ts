@@ -9,7 +9,7 @@
  * 财经MCP服务基础错误类
  * 所有自定义错误都应继承此类
  */
-export class FinanceMCPError extends Error {
+export class AIGroupMarketMCPError extends Error {
   constructor(
     message: string,
     public code: string,
@@ -28,7 +28,7 @@ export class FinanceMCPError extends Error {
 /**
  * 验证错误 - 用于参数验证失败
  */
-export class ValidationError extends FinanceMCPError {
+export class ValidationError extends AIGroupMarketMCPError {
   constructor(message: string, details?: any) {
     super(message, 'VALIDATION_ERROR', 400, details);
   }
@@ -37,7 +37,7 @@ export class ValidationError extends FinanceMCPError {
 /**
  * API错误 - 用于外部API调用失败
  */
-export class ApiError extends FinanceMCPError {
+export class ApiError extends AIGroupMarketMCPError {
   constructor(message: string, details?: any) {
     super(message, 'API_ERROR', 502, details);
   }
@@ -46,7 +46,7 @@ export class ApiError extends FinanceMCPError {
 /**
  * 网络错误 - 用于网络连接问题
  */
-export class NetworkError extends FinanceMCPError {
+export class NetworkError extends AIGroupMarketMCPError {
   constructor(message: string, details?: any) {
     super(message, 'NETWORK_ERROR', 503, details);
   }
@@ -55,7 +55,7 @@ export class NetworkError extends FinanceMCPError {
 /**
  * 配置错误 - 用于配置缺失或无效
  */
-export class ConfigError extends FinanceMCPError {
+export class ConfigError extends AIGroupMarketMCPError {
   constructor(message: string, details?: any) {
     super(message, 'CONFIG_ERROR', 500, details);
   }
@@ -64,7 +64,7 @@ export class ConfigError extends FinanceMCPError {
 /**
  * 数据未找到错误 - 用于请求的数据不存在
  */
-export class NotFoundError extends FinanceMCPError {
+export class NotFoundError extends AIGroupMarketMCPError {
   constructor(message: string, details?: any) {
     super(message, 'NOT_FOUND', 404, details);
   }
@@ -79,7 +79,7 @@ export class NotFoundError extends FinanceMCPError {
  * @returns 格式化后的错误信息
  */
 export function formatErrorMessage(error: Error, context?: string): string {
-  if (error instanceof FinanceMCPError) {
+  if (error instanceof AIGroupMarketMCPError) {
     return `[${error.code}] ${context ? context + ': ' : ''}${error.message}`;
   }
   return `${context ? context + ': ' : ''}${error.message}`;
@@ -162,15 +162,15 @@ export function createConfigMissingError(configKey: string): ConfigError {
  * 包装未知错误为标准错误
  * @param error 原始错误
  * @param context 上下文描述
- * @returns FinanceMCPError实例
+ * @returns AIGroupMarketMCPError实例
  */
-export function wrapUnknownError(error: unknown, context?: string): FinanceMCPError {
-  if (error instanceof FinanceMCPError) {
+export function wrapUnknownError(error: unknown, context?: string): AIGroupMarketMCPError {
+  if (error instanceof AIGroupMarketMCPError) {
     return error;
   }
   
   const err = error as Error;
-  return new FinanceMCPError(
+  return new AIGroupMarketMCPError(
     formatErrorMessage(err, context),
     'UNKNOWN_ERROR',
     500,

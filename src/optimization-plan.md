@@ -1,4 +1,4 @@
-# FinanceMCP 架构优化计划
+# aigroup-market-mcp 架构优化计划
 
 ## 1. 整体架构设计
 

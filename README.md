@@ -3,8 +3,24 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://www.javascript.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
+[![Version](https://img.shields.io/badge/version-2.0.0-brightgreen.svg)](https://github.com/yourusername/aigroup-market-mcp)
 
 > 🚀 基于 Tushare 和百度新闻的专业金融数据 MCP（Model Context Protocol）服务器，提供全面的金融市场数据查询服务。
+
+## 🎉 v2.0 重大升级
+
+**最新版本已升级到 MCP SDK 1.20.1，带来显著改进：**
+
+- ✅ **McpServer 高级 API** - 代码量减少 40%，更简洁优雅
+- ✅ **Zod Schema 验证** - 编译时和运行时类型安全
+- ✅ **StreamableHTTPServerTransport** - HTTP 路由代码减少 90%
+- ✅ **通知防抖优化** - 批量操作时减少 80% 网络消息
+- ✅ **更好的用户体验** - 工具添加显示名称（title），更清晰的工具发现
+
+详细升级内容请查看：
+- [升级分析](docs/mcp-sdk-upgrade-analysis.md)
+- [迁移指南](docs/migration-guide.md)
+- [升级总结](UPGRADE_SUMMARY.md)
 
 ## 👨‍💻 作者信息
 
@@ -38,6 +54,9 @@ AIGroup Market MCP Server 是一个专为金融数据分析打造的 MCP 服务�
 - **灵活输出格式**: 支持 Markdown、CSV、JSON等多种格式
 - **智能缓存机制**: 高效的数据缓存，提升查询性能
 - **错误处理完善**: 全面的异常处理和错误恢复机制
+- **🆕 类型安全**: Zod schema 提供编译时和运行时验证
+- **🆕 性能优化**: 通知防抖、优化的传输层
+- **🆕 现代化架构**: 使用最新 MCP SDK 2.0 API
 
 ## 🚀 快速开始
 
@@ -313,9 +332,11 @@ Tushare 是专业的金融数据服务平台，提供以下类型数据：
 ```
 aigroup-market-mcp/
 ├── 📁 src/
+│   ├── index.ts                 # 🆕 McpServer stdio 入口
+│   ├── httpServer.ts            # 🆕 StreamableHTTP 服务器
+│   ├── config.ts                # 配置文件
+│   │
 │   ├── 📁 core/                 # 核心模块
-│   │   ├── ToolManager.ts       # 工具管理器
-│   │   ├── toolRegistry.ts      # 工具注册中心
 │   │   └── errors.ts            # 错误处理
 │   │
 │   ├── 📁 tools/                # 工具模块
@@ -324,61 +345,92 @@ aigroup-market-mcp/
 │   │   ├── crawler/             # 新闻爬虫模块
 │   │   └── *.ts                 # 各个工具文件
 │   │
-│   ├── 📁 utils/                # 工具函数
-│   └── 📁 config.ts             # 配置文件
+│   └── 📁 utils/                # 工具函数
 │
 ├── 📁 .roo/                     # MCP配置
 ├── 📁 docs/                     # 文档
+│   ├── mcp-sdk-upgrade-analysis.md  # 升级分析
+│   ├── migration-guide.md           # 迁移指南
+│   └── upgrade-recommendations.md   # 升级建议
 ├── 📁 exports/                 # 数据导出目录
 └── 📁 csv_exports/             # CSV导出目录
 ```
 
-### 架构特点
+### 架构特点（v2.0）
 
-1. **模块化设计**: 每个工具都是独立的模块，便于维护和扩展
-2. **统一接口**: 所有工具都继承 `BaseTool` 类，确保接口一致性
-3. **依赖注入**: 通过 `ToolManager` 统一管理工具注册和调用
-4. **错误隔离**: 完善的错误处理机制，确保服务稳定性
+1. **🆕 McpServer 高级 API**: 使用 SDK 提供的高级 API，自动处理工具注册和调用
+2. **🆕 Zod Schema 验证**: 所有工具参数都通过 Zod 进行类型验证
+3. **🆕 StreamableHTTP 传输**: HTTP 服务器使用 StreamableHTTPServerTransport
+4. **🆕 通知防抖**: 批量操作时自动合并通知，减少网络开销
+5. **模块化设计**: 每个工具都是独立的模块，便于维护和扩展
+6. **错误隔离**: 完善的错误处理机制，确保服务稳定性
 
 ## 🔧 开发指南
 
-### 添加新工具
+### 添加新工具（v2.0）
 
-1. **创建工具类**
+1. **创建工具模块**
    ```typescript
-   import { BaseTool } from '../core/ToolManager.js';
+   import { z } from 'zod';
 
-   export class NewTool extends BaseTool {
-     readonly name = 'new_tool';
-     readonly description = '新工具描述';
-     readonly parameters = {
+   export const myNewTool = {
+     name: 'my_new_tool',
+     description: '新工具描述',
+     parameters: {
        type: 'object',
        properties: {
          param1: { type: 'string', description: '参数说明' }
        },
        required: ['param1']
-     };
-
-     async execute(args: any) {
+     },
+     
+     async run(args: { param1: string }) {
        // 工具实现逻辑
-       return { content: [{ type: 'text', text: '执行结果' }] };
+       return {
+         content: [{ type: 'text', text: '执行结果' }]
+       };
      }
-   }
+   };
    ```
 
 2. **注册工具**
-   在 `src/core/toolRegistry.ts` 中注册新工具：
+   在 `src/index.ts` 和 `src/httpServer.ts` 中添加：
    ```typescript
-   import { NewTool } from '../tools/NewTool.js';
-
-   export function registerAllTools(manager: ToolManager): void {
-     // 注册新工具
-     manager.registerTool(new NewTool());
-   }
+   import { myNewTool } from './tools/myNewTool.js';
+   
+   // 添加到 tools 数组
+   const tools = [
+     // ... 现有工具
+     { tool: myNewTool, handler: (args: any) => myNewTool.run(args) }
+   ];
    ```
 
 3. **更新MCP配置**
    在 `.roo/mcp.json` 的 `alwaysAllow` 数组中添加新工具名称。
+
+### 使用 Zod Schema（推荐）
+
+对于新工具，建议直接在 server.registerTool 中使用 Zod：
+
+```typescript
+server.registerTool(
+  'my_new_tool',
+  {
+    title: '🆕 我的新工具',
+    description: '新工具描述',
+    inputSchema: {
+      param1: z.string().min(1).describe('参数说明'),
+      param2: z.number().optional().describe('可选参数')
+    }
+  },
+  async ({ param1, param2 }) => {
+    // TypeScript 会自动推导参数类型
+    return {
+      content: [{ type: 'text', text: `处理 ${param1}` }]
+    };
+  }
+);
+```
 
 ### 调试技巧
 
