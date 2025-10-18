@@ -1,0 +1,51 @@
+# 源代码（已编译到build目录）
+src/
+
+# 开发配置
+tsconfig.json
+.env
+.env.*
+!.env.example
+
+# IDE 和编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 版本控制
+.git/
+.gitignore
+
+# 测试和覆盖率
+coverage/
+*.test.ts
+*.spec.ts
+__tests__/
+
+# 文档（保留README）
+docs/
+
+# 导出数据目录
+exports/
+csv_exports/
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+
+# 临时文件
+*.tmp
+*.temp
+
+# 其他开发文件
+.roo/
+build-setup.js
+Dockerfile
+.dockerignore
+
+# 操作系统
+.DS_Store
+Thumbs.db

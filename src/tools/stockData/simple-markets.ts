@@ -162,15 +162,53 @@ async function processSimpleMarket(
     if (outputFormat === 'csv' || outputFormat === 'json') {
       const fs = await import('fs');
       const path = await import('path');
-      
-      let exportDir = export_path
-        ? (path.isAbsolute(export_path) ? export_path : path.resolve(process.cwd(), export_path))
-        : path.join(process.cwd(), config.export.defaultExportPath);
-      if (!fs.existsSync(exportDir)) fs.mkdirSync(exportDir, { recursive: true });
-      
-      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-      const filename = `${code}_${userStartDate}-${userEndDate}_${timestamp}.${outputFormat}`;
-      const filepath = path.join(exportDir, filename);
+
+      let filepath: string;
+
+      if (export_path) {
+        // 检查是否为完整文件路径（包含扩展名）
+        const hasExtension = path.extname(export_path).length > 0;
+
+        if (hasExtension) {
+          // 用户指定了完整文件路径
+          if (path.isAbsolute(export_path)) {
+            filepath = export_path;
+          } else {
+            filepath = path.resolve(process.cwd(), export_path);
+          }
+
+          // 确保父目录存在
+          const parentDir = path.dirname(filepath);
+          if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
+          }
+        } else {
+          // 用户指定的是目录路径
+          let exportDir = export_path
+            ? (path.isAbsolute(export_path) ? export_path : path.resolve(process.cwd(), export_path))
+            : path.join(process.cwd(), config.export.defaultExportPath);
+
+          if (!fs.existsSync(exportDir)) {
+            fs.mkdirSync(exportDir, { recursive: true });
+          }
+
+          // 生成带时间戳的文件名
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+          const filename = `${code}_${userStartDate}-${userEndDate}_${timestamp}.${outputFormat}`;
+          filepath = path.join(exportDir, filename);
+        }
+      } else {
+        // 使用默认导出目录
+        const exportDir = path.join(process.cwd(), config.export.defaultExportPath);
+        if (!fs.existsSync(exportDir)) {
+          fs.mkdirSync(exportDir, { recursive: true });
+        }
+
+        // 生成带时间戳的文件名
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const filename = `${code}_${userStartDate}-${userEndDate}_${timestamp}.${outputFormat}`;
+        filepath = path.join(exportDir, filename);
+      }
       
       if (outputFormat === 'csv') {
         const csvContent = generateCSVContent(stockData, indicators, ['交易日期', '开盘', '收盘', '最高', '最低', '成交量', '成交额(万元)']);

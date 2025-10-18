@@ -1,15 +1,48 @@
 {
   "name": "aigroup-market-mcp",
-  "version": "1.0.0",
-  "description": "A Model Context Protocol server",
+  "version": "1.0.1",
+  "description": "专业的金融数据MCP服务器 - 基于Tushare和百度新闻，提供股票、基金、宏观经济、新闻资讯等全面的金融市场数据查询服务",
   "type": "module",
+  "author": "Jackdark425@gmail.com",
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "tushare",
+    "finance",
+    "stock",
+    "fund",
+    "crypto",
+    "financial-data",
+    "market-data",
+    "china-stock",
+    "us-stock",
+    "hk-stock",
+    "macro-economy",
+    "news",
+    "ai-tools"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/aigroup-market-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/aigroup-market-mcp/issues"
+  },
+  "homepage": "https://github.com/yourusername/aigroup-market-mcp#readme",
   "bin": {
     "aigroup-market-mcp": "./build/index.js",
     "aigroup-market-mcp-http": "./build/httpServer.js"
   },
   "files": [
-    "build"
+    "build",
+    "README.md",
+    "LICENSE",
+    ".env.example"
   ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755'); try{require('fs').chmodSync('build/httpServer.js','755')}catch(e){}\"",
     "prepare": "npm run build",

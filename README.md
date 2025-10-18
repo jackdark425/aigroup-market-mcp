@@ -45,13 +45,35 @@ AIGroup Market MCP Server 是一个专为金融数据分析打造的 MCP 服务�
 
 - **Node.js**: >= 18.0.0
 - **npm**: >= 8.0.0
-- **Tushare Token**: 需要有效的 Tushare API 令牌
+- **Tushare Token**: 需要有效的 Tushare API 令牌（[免费注册获取](https://tushare.pro)）
 
-### 安装步骤
+### 方式一：NPM 安装（推荐）
+
+这是最简单的使用方式，无需克隆代码，直接通过 npx 使用：
+
+1. **配置环境变量**
+   
+   创建 `.env` 文件或设置系统环境变量：
+   ```bash
+   export TUSHARE_TOKEN=your_tushare_token_here
+   ```
+
+2. **直接使用**
+   ```bash
+   # 启动 MCP 服务器
+   npx aigroup-market-mcp
+   
+   # 或启动 HTTP 服务器
+   npx aigroup-market-mcp-http
+   ```
+
+### 方式二：从源码安装
+
+适合需要修改或开发的场景：
 
 1. **克隆项目**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/yourusername/aigroup-market-mcp.git
    cd aigroup-market-mcp
    ```
 
@@ -94,9 +116,11 @@ AIGroup Market MCP Server 是一个专为金融数据分析打造的 MCP 服务�
 
 ## 📖 使用指南
 
-### MCP 服务器配置（RooCode）
+### MCP 服务器配置
 
-在你的 RooCode MCP 客户端配置文件（`.roo/mcp.json`）中添加服务器配置：
+#### 方式一：使用 NPM 包（推荐）
+
+在你的 MCP 客户端配置文件（如 RooCode 的 `.roo/mcp.json` 或 Claude Desktop 的配置文件）中添加：
 
 ```json
 {
@@ -104,9 +128,9 @@ AIGroup Market MCP Server 是一个专为金融数据分析打造的 MCP 服务�
     "aigroup-market-mcp": {
       "command": "npx",
       "args": [
+        "-y",
         "aigroup-market-mcp"
       ],
-      "cwd": "d:/aigroup-market-mcp",
       "env": {
         "TUSHARE_TOKEN": "your_tushare_token_here"
       },
@@ -124,6 +148,7 @@ AIGroup Market MCP Server 是一个专为金融数据分析打造的 MCP 服务�
         "block_trade",
         "money_flow",
         "margin_trade",
+        "company_performance_hk",
         "company_performance_us",
         "csi_index_constituents",
         "dragon_tiger_inst",
@@ -132,7 +157,48 @@ AIGroup Market MCP Server 是一个专为金融数据分析打造的 MCP 服务�
     }
   }
 }
-```</search_and_replace>
+```
+
+#### 方式二：使用本地路径
+
+如果你克隆了源码并在本地构建，可以使用：
+
+```json
+{
+  "mcpServers": {
+    "aigroup-market-mcp": {
+      "command": "node",
+      "args": [
+        "build/index.js"
+      ],
+      "cwd": "/path/to/aigroup-market-mcp",
+      "env": {
+        "TUSHARE_TOKEN": "your_tushare_token_here"
+      },
+      "alwaysAllow": [
+        "current_timestamp",
+        "finance_news",
+        "stock_data",
+        "stock_data_minutes",
+        "index_data",
+        "macro_econ",
+        "company_performance",
+        "fund_data",
+        "fund_manager_by_name",
+        "convertible_bond",
+        "block_trade",
+        "money_flow",
+        "margin_trade",
+        "company_performance_hk",
+        "company_performance_us",
+        "csi_index_constituents",
+        "dragon_tiger_inst",
+        "hot_news_7x24"
+      ]
+    }
+  }
+}
+```
 
 ### 工具使用示例
 

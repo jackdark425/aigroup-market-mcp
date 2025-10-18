@@ -3,9 +3,9 @@
     "aigroup-market-mcp": {
       "command": "npx",
       "args": [
+        "-y",
         "aigroup-market-mcp"
       ],
-      "cwd": "d:/aigroup-market-mcp",
       "env": {
         "TUSHARE_TOKEN": "5c766b719deb225de8206907f13cdb535a1485cec267881a27f36c6e"
       },
@@ -23,6 +23,7 @@
         "block_trade",
         "money_flow",
         "margin_trade",
+        "company_performance_hk",
         "company_performance_us",
         "csi_index_constituents",
         "dragon_tiger_inst",
