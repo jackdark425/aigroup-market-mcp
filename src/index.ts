@@ -25,12 +25,13 @@ import { companyPerformance_us } from './tools/companyPerformance_us.js';
 import { csiIndexConstituents } from './tools/csiIndexConstituents.js';
 import { dragonTigerInst } from './tools/dragonTigerInst.js';
 import { hotNews } from './tools/hotNews.js';
+import { basicInfo } from './tools/basicInfo.js';
 
 // 创建 MCP Server 实例，启用通知防抖
 const server = new McpServer(
   {
     name: 'aigroup-market-mcp',
-    version: '2.0.1'
+    version: '2.0.2'
   },
   {
     debouncedNotificationMethods: [
@@ -155,7 +156,8 @@ const tools = [
   { tool: companyPerformance_us, runner: (args: any) => companyPerformance_us.run(args) },
   { tool: csiIndexConstituents, runner: (args: any) => csiIndexConstituents.run(args) },
   { tool: dragonTigerInst, runner: (args: any) => dragonTigerInst.run(args) },
-  { tool: hotNews, runner: (args: any) => hotNews.run(args) }
+  { tool: hotNews, runner: (args: any) => hotNews.run(args) },
+  { tool: basicInfo, runner: (args: any) => basicInfo.run(args) }
 ];
 
 tools.forEach(({ tool, runner }) => {

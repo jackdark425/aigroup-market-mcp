@@ -3,6 +3,8 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.roo
+/*.tgz
 
 # 编译输出
 dist/
