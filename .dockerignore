@@ -1,0 +1,50 @@
+# Node modules
+node_modules
+npm-debug.log
+
+# Build output (will be rebuilt in container)
+build
+
+# Environment files
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Documentation
+*.md
+!README.md
+*.docx
+*.pptx
+*.pdf
+*.html
+
+# Logs and temp files
+*.log
+*.csv
+实习日志-*.md
+工作任务跟踪表-*.csv
+~$*.docx
+
+# Test files
+test
+tests
+*.test.js
+*.test.ts
+
+# CI/CD
+.github
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+

@@ -1,0 +1,38 @@
+{
+  "name": "aigroup-market-mcp",
+  "version": "1.0.0",
+  "description": "A Model Context Protocol server",
+  "type": "module",
+  "bin": {
+    "aigroup-market-mcp": "./build/index.js",
+    "aigroup-market-mcp-http": "./build/httpServer.js"
+  },
+  "files": [
+    "build"
+  ],
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755'); try{require('fs').chmodSync('build/httpServer.js','755')}catch(e){}\"",
+    "prepare": "npm run build",
+    "watch": "tsc --watch",
+    "inspector": "npx @modelcontextprotocol/inspector build/index.js",
+    "dev": "node build/httpServer.js",
+    "dev:sse": "node build/index.js",
+    "setup": "node build-setup.js",
+    "start:http": "node build/httpServer.js",
+    "start:stdio": "node build/index.js",
+    "start:sse": "npx supergateway --stdio \"node build/index.js\" --port 3100"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "0.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.24",
+    "typescript": "^5.3.3"
+  }
+}
