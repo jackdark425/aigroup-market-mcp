@@ -3,28 +3,30 @@
  * 这些市场需要特殊的表格列和格式
  */
 
-import { TUSHARE_CONFIG } from '../../config.js';
-import { 
-  MarketProcessParams, 
-  MarketProcessResult, 
+import { TUSHARE_CONFIG, config } from '../../config.js';
+import {
+  MarketProcessParams,
+  MarketProcessResult,
   Indicators,
   StockDataRecord,
   MarketType,
   MARKET_TITLE_MAP
 } from './types.js';
-import { 
-  calculateMACD, 
-  calculateKDJ, 
-  calculateRSI, 
-  calculateBOLL, 
+import {
+  calculateMACD,
+  calculateKDJ,
+  calculateRSI,
+  calculateBOLL,
   calculateSMA,
   parseIndicatorParams,
   calculateRequiredDays,
   calculateExtendedStartDate,
   filterDataToUserRange
 } from '../stockDataDetail/index.js';
-import { 
+import {
   generateIndicatorDocumentation,
+  generateCSVContent,
+  generateJSONData,
   formatAmountWan,
   getIndicatorHeaders,
   getIndicatorRow
@@ -45,7 +47,7 @@ async function processSpecialMarket(
   params: MarketProcessParams,
   marketType: MarketType
 ): Promise<MarketProcessResult> {
-  const { code, start_date, end_date, indicators: indicatorsParam } = params;
+  const { code, start_date, end_date, indicators: indicatorsParam, output_format, export_path } = params;
   
   const requestedIndicators = indicatorsParam ? indicatorsParam.trim().split(/\s+/) : [];
   const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
@@ -172,7 +174,95 @@ async function processSpecialMarket(
       stockData = filterDataToUserRange(stockData, userStartDate, userEndDate);
     }
     
-    // 生成特殊格式表格
+    // 输出格式处理
+    const outputFormat = output_format || 'markdown';
+    
+    // CSV/JSON导出处理
+    if (outputFormat === 'csv' || outputFormat === 'json') {
+      const fs = await import('fs');
+      const path = await import('path');
+
+      let filepath: string;
+
+      if (export_path) {
+        // 检查是否为完整文件路径（包含扩展名）
+        const hasExtension = path.extname(export_path).length > 0;
+
+        if (hasExtension) {
+          // 用户指定了完整文件路径
+          if (path.isAbsolute(export_path)) {
+            filepath = export_path;
+          } else {
+            filepath = path.resolve(process.cwd(), export_path);
+          }
+
+          // 确保父目录存在
+          const parentDir = path.dirname(filepath);
+          if (!fs.existsSync(parentDir)) {
+            fs.mkdirSync(parentDir, { recursive: true });
+          }
+        } else {
+          // 用户指定的是目录路径
+          let exportDir = export_path
+            ? (path.isAbsolute(export_path) ? export_path : path.resolve(process.cwd(), export_path))
+            : path.join(process.cwd(), config.export.defaultExportPath);
+
+          if (!fs.existsSync(exportDir)) {
+            fs.mkdirSync(exportDir, { recursive: true });
+          }
+
+          // 生成带时间戳的文件名
+          const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+          const filename = `${code}_${userStartDate}-${userEndDate}_${timestamp}.${outputFormat}`;
+          filepath = path.join(exportDir, filename);
+        }
+      } else {
+        // 使用默认导出目录
+        const exportDir = path.join(process.cwd(), config.export.defaultExportPath);
+        if (!fs.existsSync(exportDir)) {
+          fs.mkdirSync(exportDir, { recursive: true });
+        }
+
+        // 生成带时间戳的文件名
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        const filename = `${code}_${userStartDate}-${userEndDate}_${timestamp}.${outputFormat}`;
+        filepath = path.join(exportDir, filename);
+      }
+      
+      // 根据市场类型确定表头
+      let baseHeaders: string[] = [];
+      if (marketType === 'fx') {
+        baseHeaders = ['交易日期', '买入开盘', '买入最高', '买入最低', '买入收盘', '卖出开盘', '卖出最高', '卖出最低', '卖出收盘', '报价笔数'];
+      } else if (marketType === 'futures') {
+        baseHeaders = ['交易日期', '开盘', '最高', '最低', '收盘', '结算', '涨跌1', '涨跌2', '成交量', '持仓量'];
+      } else if (marketType === 'repo') {
+        baseHeaders = ['交易日期', '品种名称', '利率(%)', '成交金额(万元)'];
+      } else if (marketType === 'convertible_bond') {
+        baseHeaders = ['交易日期', '开盘', '最高', '最低', '收盘', '涨跌', '涨跌幅(%)', '成交量(手)', '成交金额(万元)', '纯债价值', '纯债溢价率(%)', '转股价值', '转股溢价率(%)'];
+      } else if (marketType === 'options') {
+        baseHeaders = ['交易日期', '交易所', '昨结算', '前收盘', '开盘', '最高', '最低', '收盘', '结算', '成交量(手)', '成交金额(万元)', '持仓量(手)'];
+      }
+      
+      if (outputFormat === 'csv') {
+        const csvContent = generateCSVContent(stockData, indicators, baseHeaders);
+        fs.writeFileSync(filepath, csvContent, 'utf8');
+      } else {
+        const jsonData = generateJSONData(code, marketType, userStartDate, userEndDate, stockData, indicators);
+        fs.writeFileSync(filepath, JSON.stringify(jsonData, null, 2), 'utf8');
+      }
+      
+      const stats = fs.statSync(filepath);
+      const fileSizeKB = (stats.size / 1024).toFixed(2);
+      
+      return {
+        content: [{
+          type: "text",
+          text: `# ${code} ${MARKET_TITLE_MAP[marketType]}行情数据 - ${outputFormat.toUpperCase()}导出\n\n✅ 文件已生成：\n**文件路径**: ${filepath}\n**文件大小**: ${fileSizeKB} KB\n**数据条数**: ${stockData.length}条\n**包含指标**: ${Object.keys(indicators).length > 0 ? '是' : '否'}\n**日期范围**: ${userStartDate} 至 ${userEndDate}\n\n文件已保存到本地目录。`
+        }]
+      };
+    }
+    
+    // Markdown格式输出：生成特殊格式表格
     let formattedData = '';
     const indicatorHeaders = getIndicatorHeaders(indicators);
     

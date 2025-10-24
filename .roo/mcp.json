@@ -28,7 +28,8 @@
         "csi_index_constituents",
         "dragon_tiger_inst",
         "hot_news_7x24"
-      ]
+      ],
+      "disabled": true
     }
   }
 }

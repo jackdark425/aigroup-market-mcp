@@ -1,7 +1,7 @@
 {
   "name": "aigroup-market-mcp",
-  "version": "2.0.2",
-  "description": "专业的金融数据MCP服务器 - 基于Tushare和百度新闻，提供股票、基金、宏观经济、新闻资讯等全面的金融市场数据查询服务。v2.0 升级：使用 McpServer 高级 API、Zod schema 验证、StreamableHTTPServerTransport、通知防抖优化",
+  "version": "2.0.3",
+  "description": "专业的金融数据MCP服务器 - 基于Tushare和百度新闻，提供股票、基金、宏观经济、新闻资讯等全面的金融市场数据查询服务。v2.0.3 修复：修复特殊市场类型（期货、外汇、期权、可转债、债券逆回购）的CSV/JSON导出功能",
   "type": "module",
   "author": "Jackdark425@gmail.com",
   "license": "MIT",
