@@ -9,7 +9,7 @@ export const macroEcon = {
     properties: {
       indicator: {
         type: "string",
-        description: "指标类型，可选值：shibor(上海银行间同业拆放利率)、lpr(贷款市场报价利率)、gdp(国内生产总值)、cpi(居民消费价格指数)、ppi(工业生产者出厂价格指数)、cn_m(货币供应量)、cn_pmi(采购经理指数)、cn_sf(社会融资规模)、shibor_quote(Shibor银行报价数据)、libor(伦敦银行间同业拆借利率)、hibor(香港银行间同业拆借利率)"
+        description: "指标类型，可选值：shibor(上海银行间同业拆放利率)、lpr(贷款市场报价利率)、gdp(国内生产总值)、cpi(居民消费价格指数)、ppi(工业生产者出厂价格指数)、cn_m(货币供应量)、cn_pmi(采购经理指数)、sf_month(社会融资规模增量)、shibor_quote(Shibor银行报价数据)、libor(伦敦银行间同业拆借利率)、hibor(香港银行间同业拆借利率)"
       },
       start_date: {
         type: "string",
@@ -38,7 +38,7 @@ export const macroEcon = {
       const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
       
       // 验证指标类型
-      const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf', 'shibor_quote', 'libor', 'hibor'];
+      const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi', 'cn_m', 'cn_pmi', 'sf_month', 'shibor_quote', 'libor', 'hibor'];
       if (!validIndicators.includes(args.indicator)) {
         throw new Error(`不支持的指标类型: ${args.indicator}。支持的类型有: ${validIndicators.join(', ')}`);
       }
@@ -52,7 +52,7 @@ export const macroEcon = {
       // 日期格式数据：默认30天
       const dailyIndicators = ['shibor', 'lpr', 'shibor_quote', 'libor', 'hibor'];
       // 月份格式数据：默认12个月
-      const monthlyIndicators = ['cpi', 'ppi', 'cn_m', 'cn_pmi', 'cn_sf'];
+      const monthlyIndicators = ['cpi', 'ppi', 'cn_m', 'cn_pmi', 'sf_month'];
       // 季度格式数据：默认8个季度
       const quarterlyIndicators = ['gdp'];
       
@@ -169,8 +169,8 @@ export const macroEcon = {
           };
           break;
           
-        case 'cn_sf':
-          params.api_name = "sf_month";  // 修正API名称，使用正确的sf_month接口
+        case 'sf_month':
+          params.api_name = "sf_month";
           params.fields = "month,inc_month,inc_cumval,stk_endval";
           // 社融增量数据使用月份格式
           const startMonthSF = dateToMonth(args.start_date || defaultStartDate);
@@ -267,7 +267,7 @@ export const macroEcon = {
           'ppi': '工业生产者出厂价格指数(PPI)',
           'cn_m': '货币供应量',
           'cn_pmi': '采购经理指数(PMI)',
-          'cn_sf': '社会融资规模',
+          'sf_month': '社会融资规模增量',
           'shibor_quote': 'Shibor银行报价数据',
           'libor': 'Libor利率数据',
           'hibor': 'Hibor利率数据'
@@ -411,7 +411,7 @@ ${tableSeparator}
 ${tableRows.join('\n')}
 
 数据说明：PMI指数50为荣枯分界线，高于50表示扩张，低于50表示收缩。`;
-        } else if (args.indicator === 'cn_sf') {
+        } else if (args.indicator === 'sf_month') {
           // 社融增量数据展示
           formattedData = econData.map((data: Record<string, any>) => {
             return ` ${formatMonth(data.month)}\n当月增量: ${data.inc_month}亿元  累计增量: ${data.inc_cumval}亿元\n存量期末值: ${data.stk_endval}万亿元\n`;
@@ -457,7 +457,7 @@ ${tableRows.join('\n')}
         content: [
           {
             type: "text",
-            text: ` 获取${args.indicator}宏观经济数据失败\n\n错误信息: ${error instanceof Error ? error.message : String(error)}\n\n支持的指标类型: \n- shibor: 上海银行间同业拆放利率\n- lpr: 贷款市场报价利率\n- gdp: 国内生产总值\n- cpi: 居民消费价格指数\n- ppi: 工业生产者出厂价格指数\n- cn_m: 货币供应量\n- cn_pmi: 采购经理指数\n- cn_sf: 社会融资规模\n- shibor_quote: Shibor银行报价数据\n- libor: 伦敦银行间同业拆借利率\n- hibor: 香港银行间同业拆借利率`
+            text: ` 获取${args.indicator}宏观经济数据失败\n\n错误信息: ${error instanceof Error ? error.message : String(error)}\n\n支持的指标类型: \n- shibor: 上海银行间同业拆放利率\n- lpr: 贷款市场报价利率\n- gdp: 国内生产总值\n- cpi: 居民消费价格指数\n- ppi: 工业生产者出厂价格指数\n- cn_m: 货币供应量\n- cn_pmi: 采购经理指数\n- sf_month: 社会融资规模增量\n- shibor_quote: Shibor银行报价数据\n- libor: 伦敦银行间同业拆借利率\n- hibor: 香港银行间同业拆借利率`
           }
         ]
       };
