@@ -1,8 +1,9 @@
 import { TUSHARE_CONFIG } from '../config.js';
+import { exportData, generateExportSuccessMessage, getExportParameters, shouldExport } from '../utils/exportUtils.js';
 
 export const fundData = {
   name: "fund_data",
-  description: "获取公募基金全面数据，包括基金列表、基金经理、基金净值、基金分红、基金持仓等数据。",
+  description: "获取公募基金全面数据，包括基金列表、基金经理、基金净值、基金分红、基金持仓等数据，支持CSV/JSON格式导出",
   parameters: {
     type: "object",
     properties: {
@@ -27,16 +28,19 @@ export const fundData = {
       period: {
         type: "string",
         description: "特定报告期，格式为YYYYMMDD。例如：'20231231'表示2023年年报，'20240630'表示2024年中报，'20220630'表示2022年三季报，'20240331'表示2024年一季报。指定此参数时将忽略start_date和end_date"
-      }
+      },
+      ...getExportParameters()
     },
     required: ["data_type","ts_code"]
   },
-  async run(args: { 
-    ts_code?: string; 
-    data_type: string; 
-    start_date?: string; 
-    end_date?: string; 
+  async run(args: {
+    ts_code?: string;
+    data_type: string;
+    start_date?: string;
+    end_date?: string;
     period?: string;
+    output_format?: string;
+    export_path?: string;
   }) {
     try {
       console.log('基金数据查询参数:', args);
@@ -101,6 +105,31 @@ export const fundData = {
 
       if (results.length === 0) {
         throw new Error(`未找到相关基金数据`);
+      }
+
+      // 检查是否需要导出
+      if (shouldExport(args)) {
+        // 对于导出，我们只处理第一个结果的数据
+        const firstResult = results.find(r => !r.error && r.data && r.data.length > 0);
+        if (firstResult) {
+          const exportResult = await exportData(
+            firstResult.data,
+            firstResult.fields,
+            `fund_${args.ts_code || 'data'}_${args.data_type}`,
+            args
+          );
+
+          const exportMessage = generateExportSuccessMessage(exportResult, `基金${args.data_type}数据`);
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: exportMessage
+              }
+            ]
+          };
+        }
       }
 
       // 格式化输出

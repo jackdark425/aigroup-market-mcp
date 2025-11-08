@@ -1,8 +1,9 @@
 import { TUSHARE_CONFIG } from '../config.js';
+import { exportData, generateExportSuccessMessage, getExportParameters, shouldExport } from '../utils/exportUtils.js';
 
 export const macroEcon = {
   name: "macro_econ",
-  description: "获取宏观经济数据，包括Shibor利率、LPR利率、GDP、CPI、PPI、货币供应量、PMI、社融数据、Shibor报价、Libor、Hibor等",
+  description: "获取宏观经济数据，包括Shibor利率、LPR利率、GDP、CPI、PPI、货币供应量、PMI、社融数据、Shibor报价、Libor、Hibor等，支持CSV/JSON格式导出",
   parameters: {
     type: "object",
     properties: {
@@ -17,11 +18,18 @@ export const macroEcon = {
       end_date: {
         type: "string",
         description: "结束日期，格式为YYYYMMDD，如'20230131'"
-      }
+      },
+      ...getExportParameters()
     },
     required: ["indicator","start_date","end_date"]
   },
-  async run(args: { indicator: string; start_date?: string; end_date?: string }) {
+  async run(args: {
+    indicator: string;
+    start_date?: string;
+    end_date?: string;
+    output_format?: string;
+    export_path?: string;
+  }) {
     try {
       console.log(`使用Tushare API获取${args.indicator}宏观经济数据`);
       
@@ -162,7 +170,7 @@ export const macroEcon = {
           break;
           
         case 'cn_sf':
-          params.api_name = "cn_sf";  // 修正API名称
+          params.api_name = "sf_month";  // 修正API名称，使用正确的sf_month接口
           params.fields = "month,inc_month,inc_cumval,stk_endval";
           // 社融增量数据使用月份格式
           const startMonthSF = dateToMonth(args.start_date || defaultStartDate);
@@ -410,6 +418,27 @@ ${tableRows.join('\n')}
           }).join('\n---\n\n');
         }
         
+        // 检查是否需要导出
+        if (shouldExport(args)) {
+          const exportResult = await exportData(
+            econData,
+            fields,
+            `macro_${args.indicator}`,
+            args
+          );
+
+          const exportMessage = generateExportSuccessMessage(exportResult, titleMap[args.indicator]);
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: exportMessage
+              }
+            ]
+          };
+        }
+
         return {
           content: [
             {

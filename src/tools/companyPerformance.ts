@@ -34,10 +34,11 @@ import { formatShareFloat } from './companyPerformanceDetail/shareFloatFormatter
 import { formatRepurchase } from './companyPerformanceDetail/repurchaseFormatters.js';
 import { formatTop10Holders, formatTop10FloatHolders } from './companyPerformanceDetail/top10HoldersFormatters.js';
 import { formatPledgeStat, formatPledgeDetail } from './companyPerformanceDetail/pledgeFormatters.js';
+import { exportData, generateExportSuccessMessage, getExportParameters, shouldExport } from '../utils/exportUtils.js';
 
 export const companyPerformance = {
   name: "company_performance",
-  description: "获取上市公司综合表现数据，包括业绩预告、业绩快报、财务指标、分红送股、主营业务构成、股东变动数据、管理层信息、公司基本信息、资产负债表、现金流量表、利润表等完整财务报表数据",
+  description: "获取上市公司综合表现数据，包括业绩预告、业绩快报、财务指标、分红送股、主营业务构成、股东变动数据、管理层信息、公司基本信息、资产负债表、现金流量表、利润表等完整财务报表数据，支持CSV/JSON格式导出",
   parameters: {
     type: "object",
     properties: {
@@ -61,16 +62,19 @@ export const companyPerformance = {
       period: {
         type: "string",
         description: "特定报告期，格式为YYYYMMDD，如'20231231'表示2023年年报。指定此参数时将忽略start_date和end_date"
-      }
+      },
+      ...getExportParameters()
     },
     required: ["ts_code", "data_type", "start_date", "end_date"]
   },
-  async run(args: { 
-    ts_code: string; 
-    data_type: string; 
+  async run(args: {
+    ts_code: string;
+    data_type: string;
     start_date: string;
     end_date: string;
     period?: string;
+    output_format?: string;
+    export_path?: string;
   }) {
     try {
       console.log('公司综合表现查询参数:', args);
@@ -130,6 +134,31 @@ export const companyPerformance = {
           });
         }
         
+        // 检查是否需要导出
+        if (shouldExport(args)) {
+          // 对于导出，我们只处理第一个结果的数据
+          const firstResult = results.find(r => !r.error && r.data && r.data.length > 0);
+          if (firstResult) {
+            const exportResult = await exportData(
+              firstResult.data,
+              firstResult.fields,
+              `company_${args.ts_code}_${args.data_type}`,
+              args
+            );
+  
+            const exportMessage = generateExportSuccessMessage(exportResult, `${args.ts_code} ${args.data_type}数据`);
+  
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: exportMessage
+                }
+              ]
+            };
+          }
+        }
+  
         // 格式化输出
         const formattedOutput = formatFinancialData(results, args.ts_code);
         

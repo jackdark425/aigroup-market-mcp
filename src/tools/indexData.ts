@@ -1,8 +1,9 @@
 import { TUSHARE_CONFIG } from '../config.js';
+import { exportData, generateExportSuccessMessage, getExportParameters, shouldExport } from '../utils/exportUtils.js';
 
 export const indexData = {
   name: "index_data",
-  description: "获取指定股票指数的数据，例如上证指数、深证成指等",
+  description: "获取指定股票指数的数据，例如上证指数、深证成指等，支持CSV/JSON格式导出",
   parameters: {
     type: "object",
     properties: {
@@ -17,11 +18,18 @@ export const indexData = {
       end_date: {
         type: "string",
         description: "结束日期，格式为YYYYMMDD，如'20230131'"
-      }
+      },
+      ...getExportParameters()
     },
     required: ["code", "start_date", "end_date"]
   },
-  async run(args: { code: string; start_date?: string; end_date?: string }) {
+  async run(args: {
+    code: string;
+    start_date?: string;
+    end_date?: string;
+    output_format?: string;
+    export_path?: string;
+  }) {
     try {
       console.log(`使用Tushare API获取指数${args.code}的数据`);
       
@@ -117,6 +125,27 @@ export const indexData = {
         const startDate = indexData[indexData.length - 1]?.trade_date || args.start_date || defaultStartDate;
         const endDate = indexData[0]?.trade_date || args.end_date || defaultEndDate;
         
+        // 检查是否需要导出
+        if (shouldExport(args)) {
+          const exportResult = await exportData(
+            indexData,
+            fields,
+            `index_${args.code}`,
+            args
+          );
+
+          const exportMessage = generateExportSuccessMessage(exportResult, `${args.code}指数数据`);
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: exportMessage
+              }
+            ]
+          };
+        }
+
         // 格式化输出
         const formattedData = indexData.map((data: Record<string, any>) => {
           return `## ${data.trade_date}\n开盘: ${data.open}  最高: ${data.high}  最低: ${data.low}  收盘: ${data.close}\n涨跌: ${data.change}  涨跌幅: ${data.pct_chg}%  成交量: ${data.vol}  成交额: ${data.amount}\n`;

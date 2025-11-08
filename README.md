@@ -133,6 +133,13 @@ AIGroup Market MCP Server 是一个专为金融数据分析打造的 MCP 服务�
    npm start
    ```
 
+## 📚 文档资源
+
+- **[Tushare API 接口对照文档](docs/TUSHARE_API_MAPPING.md)** - 完整的API接口映射表，包含所有工具与Tushare官方接口的对应关系，便于维护和升级
+- **[升级分析](docs/mcp-sdk-upgrade-analysis.md)** - MCP SDK 升级详细分析
+- **[迁移指南](docs/migration-guide.md)** - 版本迁移指南
+- **[升级总结](UPGRADE_SUMMARY.md)** - 升级摘要说明
+
 ## 📖 使用指南
 
 ### MCP 服务器配置
