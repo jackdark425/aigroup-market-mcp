@@ -144,7 +144,7 @@
 | 工具函数 | Tushare API | 官方文档链接 | 积分要求 | 说明 |
 |---------|------------|------------|---------|------|
 | shibor | `shibor` | [doc_id=149](https://tushare.pro/document/2?doc_id=149) | 免费 | Shibor利率数据 |
-| lpr_data | `lpr_data` | [doc_id=150](https://tushare.pro/document/2?doc_id=150) | 免费 | LPR贷款市场报价利率 |
+| shibor_lpr | `shibor_lpr` | [doc_id=150](https://tushare.pro/document/2?doc_id=150) | 免费 | LPR贷款市场报价利率 |
 | cn_gdp | `cn_gdp` | [doc_id=227](https://tushare.pro/document/2?doc_id=227) | 免费 | 国内生产总值 |
 | cn_cpi | `cn_cpi` | [doc_id=138](https://tushare.pro/document/2?doc_id=138) | 免费 | 居民消费价格指数 |
 | cn_ppi | `cn_ppi` | [doc_id=139](https://tushare.pro/document/2?doc_id=139) | 免费 | 工业生产者出厂价格指数 |

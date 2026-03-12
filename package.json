@@ -24,12 +24,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/aigroup-market-mcp.git"
+    "url": "https://github.com/jackdark425/aigroup-market-mcp.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/aigroup-market-mcp/issues"
+    "url": "https://github.com/jackdark425/aigroup-market-mcp/issues"
   },
-  "homepage": "https://github.com/yourusername/aigroup-market-mcp#readme",
+  "homepage": "https://github.com/jackdark425/aigroup-market-mcp#readme",
   "bin": {
     "aigroup-market-mcp": "./build/index.js",
     "aigroup-market-mcp-http": "./build/httpServer.js"
@@ -56,17 +56,17 @@
     "start:sse": "npx supergateway --stdio \"node build/index.js\" --port 3100"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.20.1",
-    "cors": "^2.8.5",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "cors": "^2.8.6",
     "dotenv": "^16.6.1",
-    "express": "^4.21.2",
+    "express": "^4.22.1",
     "node-fetch": "^3.3.2",
-    "zod": "^3.24.1"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.23",
-    "@types/node": "^20.19.22",
+    "@types/express": "^4.17.25",
+    "@types/node": "^20.19.37",
     "typescript": "^5.9.3"
   }
 }

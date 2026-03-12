@@ -126,7 +126,7 @@ function jsonSchemaToZod(schema: any): any {
 const server = new McpServer(
   {
     name: 'aigroup-market-mcp',
-    version: '2.0.2'
+    version: '2.0.6'
   },
   {
     debouncedNotificationMethods: [
@@ -231,7 +231,7 @@ tools.forEach(({ tool, runner }) => {
 app.get('/health', (_req: Request, res: Response) => {
   res.json({
     status: 'healthy',
-    version: '2.0.2',
+    version: '2.0.6',
     transport: 'streamable-http',
     features: ['McpServer', 'Zod validation', 'Notification debouncing'],
     tools: tools.length + 1

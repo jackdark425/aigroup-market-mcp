@@ -26,16 +26,16 @@ npm publish
 ## 重要说明
 
 ### 认证配置
-- ✅ **已配置认证**：系统已通过 `npm login` 登录 npm 账户
-- 🔐 **认证文件**：认证 token 存储在 `C:\Users\dongj\.npmrc` 文件中
-- ⚡ **自动认证**：发布时 npm 会自动使用存储的 token，无需重复登录
+- 发布前先执行 `npm whoami` 确认当前机器的 npm 登录状态
+- 认证信息通常由当前系统用户的 `~/.npmrc` 管理
+- 若当前机器未登录，请先执行 `npm login`
 
 ### 发布前检查清单
 - [ ] 更新 `package.json` 中的版本号
 - [ ] 确保所有代码变更已提交
 - [ ] 运行 `npm run build` 确保构建成功
 - [ ] 测试构建后的功能是否正常
-- [ ] 更新 CHANGELOG.md（如有）
+- [ ] 更新 CHANGELOG.md（若已建立）
 
 ### 版本号规范
 - **主版本号 (major)**：不兼容的 API 修改
@@ -44,6 +44,7 @@ npm publish
 
 ### 注意事项
 - 发布前确保 `.npmignore` 配置正确，避免发布不必要的文件
+- 发布前建议执行 `npm whoami`、`npm run build`、以及基础启动验证
 - 发布后可在 [npmjs.com](https://www.npmjs.com/package/aigroup-market-mcp) 查看包状态
 - 如需重新登录，使用 `npm login` 命令
 

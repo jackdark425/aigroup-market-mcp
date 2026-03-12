@@ -98,9 +98,9 @@ export const macroEcon = {
           break;
           
         case 'lpr':
-          params.api_name = "lpr_data";
+          params.api_name = "shibor_lpr";
           params.fields = "date,1y,5y";
-          // lpr_data接口使用start_date和end_date作为参数
+          // LPR 接口使用 start_date 和 end_date 作为参数
           params.params = {
             start_date: args.start_date || defaultStartDate,
             end_date: args.end_date || defaultEndDate
@@ -242,8 +242,27 @@ export const macroEcon = {
         }
         
         // 确保data.data和data.data.items存在
-        if (!data.data || !data.data.items || data.data.items.length === 0) {
+        if (!data.data || !data.data.items) {
           throw new Error(`未找到${args.indicator}宏观经济数据`);
+        }
+
+        // Tushare 对部分宏观接口会返回 code=0 但 items 为空；这属于“暂无数据”而不是接口异常
+        if (data.data.items.length === 0) {
+          const noDataHintMap: Record<string, string> = {
+            libor: '当前日期范围内 Tushare 未返回 Libor 数据，可能是该区间暂无可用记录或数据源近期未更新。',
+            hibor: '当前日期范围内 Tushare 未返回 Hibor 数据，可能是该区间暂无可用记录或数据源近期未更新。'
+          };
+
+          const noDataHint = noDataHintMap[args.indicator] || `当前条件下未查询到 ${args.indicator} 宏观经济数据。`;
+
+          return {
+            content: [
+              {
+                type: "text",
+                text: `# ${titleMapForNoData(args.indicator)}\n\n查询时间范围: ${args.start_date || defaultStartDate} - ${args.end_date || defaultEndDate}\n\n暂无数据。\n\n说明: ${noDataHint}`
+              }
+            ]
+          };
         }
         
         // 获取字段名
@@ -298,12 +317,13 @@ export const macroEcon = {
           formattedData = econData.map((data: Record<string, any>) => {
             let row = '';
             for (const [key, value] of Object.entries(data)) {
-              if (key !== 'date' && key !== 'curr') {
+              if (key !== 'date' && key !== 'curr' && key !== 'curr_type') {
                 const displayName = getRateDisplayName(key);
                 row += `${displayName}: ${value}%  `;
               }
             }
-            const currencyInfo = data.curr ? ` (${data.curr})` : '';
+            const currency = data.curr || data.curr_type;
+            const currencyInfo = currency ? ` (${currency})` : '';
             return ` ${formatDate(data.date)}${currencyInfo}\n${row}\n`;
           }).join('\n---\n\n');
         } else if (args.indicator === 'gdp') {
@@ -464,6 +484,26 @@ ${tableRows.join('\n')}
     }
   }
 };
+
+/*
+ * 获取无数据时的标题名称
+ */
+function titleMapForNoData(indicator: string): string {
+  const titleMap: Record<string, string> = {
+    shibor: 'Shibor利率数据',
+    lpr: 'LPR贷款市场报价利率',
+    gdp: '国内生产总值(GDP)',
+    cpi: '居民消费价格指数(CPI)',
+    ppi: '工业生产者出厂价格指数(PPI)',
+    cn_m: '货币供应量',
+    cn_pmi: '采购经理指数(PMI)',
+    sf_month: '社会融资规模增量',
+    shibor_quote: 'Shibor银行报价数据',
+    libor: 'Libor利率数据',
+    hibor: 'Hibor利率数据'
+  };
+  return titleMap[indicator] || `${indicator} 宏观经济数据`;
+}
 
 /*
  * 获取利率字段的显示名称

@@ -3,13 +3,13 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://www.javascript.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Version](https://img.shields.io/badge/version-2.0.0-brightgreen.svg)](https://github.com/yourusername/aigroup-market-mcp)
+[![Version](https://img.shields.io/badge/version-2.0.6-brightgreen.svg)](https://github.com/jackdark425/aigroup-market-mcp)
 
 > 🚀 基于 Tushare 和百度新闻的专业金融数据 MCP（Model Context Protocol）服务器，提供全面的金融市场数据查询服务。
 
 ## 🎉 v2.0 重大升级
 
-**最新版本已升级到 MCP SDK 1.20.1，带来显著改进：**
+**当前版本基于 MCP SDK 1.27.1，带来显著改进：**
 
 - ✅ **McpServer 高级 API** - 代码量减少 40%，更简洁优雅
 - ✅ **Zod Schema 验证** - 编译时和运行时类型安全
@@ -92,7 +92,7 @@ AIGroup Market MCP Server 是一个专为金融数据分析打造的 MCP 服务�
 
 1. **克隆项目**
    ```bash
-   git clone https://github.com/yourusername/aigroup-market-mcp.git
+   git clone https://github.com/jackdark425/aigroup-market-mcp.git
    cd aigroup-market-mcp
    ```
 
@@ -448,7 +448,7 @@ server.registerTool(
 
 ## 📝 更新日志
 
-查看 [CHANGELOG.md](CHANGELOG.md) 获取详细的版本更新信息。
+当前仓库尚未维护独立的 `CHANGELOG.md`，建议后续发布时补充版本变更记录。
 
 ## 🤝 贡献指南
 
