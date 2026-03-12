@@ -31,7 +31,7 @@ import { basicInfo } from './tools/basicInfo.js';
 const server = new McpServer(
   {
     name: 'aigroup-market-mcp',
-    version: '2.0.6'
+    version: '2.0.7'
   },
   {
     debouncedNotificationMethods: [

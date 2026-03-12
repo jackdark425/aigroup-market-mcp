@@ -3,7 +3,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://www.javascript.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Version](https://img.shields.io/badge/version-2.0.6-brightgreen.svg)](https://github.com/jackdark425/aigroup-market-mcp)
+[![Version](https://img.shields.io/badge/version-2.0.7-brightgreen.svg)](https://github.com/jackdark425/aigroup-market-mcp)
 
 > 🚀 基于 Tushare 和百度新闻的专业金融数据 MCP（Model Context Protocol）服务器，提供全面的金融市场数据查询服务。
 
