@@ -274,6 +274,36 @@ async function fetchFundData(
       console.log(`日期范围过滤后剩余${filteredData.length}条${dataType}记录`);
     }
 
+    // 净值数据去重：同一净值日期仅保留信息最完整的一条，避免重复展示
+    if (dataType === 'nav' && filteredData.length > 0) {
+      const dedupedMap = new Map<string, any>();
+      const scoreNavRow = (item: any) => {
+        let score = 0;
+        if (item.net_asset !== null && item.net_asset !== undefined && item.net_asset !== '') score += 2;
+        if (item.total_netasset !== null && item.total_netasset !== undefined && item.total_netasset !== '') score += 2;
+        if (item.adj_nav !== null && item.adj_nav !== undefined && item.adj_nav !== '') score += 1;
+        if (item.accum_nav !== null && item.accum_nav !== undefined && item.accum_nav !== '') score += 1;
+        return score;
+      };
+
+      for (const item of filteredData) {
+        const key = [
+          item.ts_code || '',
+          item.nav_date || item.ann_date || ''
+        ].join('|');
+
+        const existing = dedupedMap.get(key);
+        if (!existing || scoreNavRow(item) > scoreNavRow(existing)) {
+          dedupedMap.set(key, item);
+        }
+      }
+      const before = filteredData.length;
+      filteredData = Array.from(dedupedMap.values());
+      if (before !== filteredData.length) {
+        console.log(`净值数据去重: ${before} -> ${filteredData.length}`);
+      }
+    }
+
     console.log(`成功获取到${filteredData.length}条${dataType}数据记录`);
     
     // 如果是净值数据且有基金代码，尝试获取基金份额数据并合并

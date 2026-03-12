@@ -18,13 +18,28 @@
 - stdio 启动：通过
 - HTTP 健康检查：通过
 - `npm audit`：0 vulnerabilities
+- 真实 Tushare 功能实测通过：
+  - `basic_info`
+  - `stock_data`
+  - `stock_data_minutes`
+  - `index_data`
+  - `macro_econ`
+  - `company_performance`
+  - `fund_data`
+  - `money_flow`
+  - `hot_news_7x24`
+  - `convertible_bond`
+- 额外发现并修复：
+  - `macro_econ` 的 `lpr` 接口名错误
+  - `macro_econ` 的 `libor` / `hibor` 空结果误报失败
+  - `fund_data` 的 `nav` 结果重复展示问题
 
 ## 暂未完成的事项
 
-- 未进行真实 Tushare 接口数据测试（当前未注入 token）
 - 未执行 npm 发布
-- 未提交 git commit
 - 未补充自动化测试
+- 港股财务接口仍需做超时/重试优化
+- 美股财务接口受当前 Tushare token 权限限制，暂未做完整功能验收
 
 ## 建议的下一步
 

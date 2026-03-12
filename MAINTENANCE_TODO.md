@@ -26,18 +26,26 @@
 - 项目支持两种运行模式：
   - stdio MCP：`node build/index.js`
   - HTTP MCP：`node build/httpServer.js`
-
-## 待办 P0
-
-- 使用真实 `TUSHARE_TOKEN` 做关键工具冒烟测试：
+- 已实测通过的模块：
+  - `basic_info`
   - `stock_data`
+  - `stock_data_minutes`
   - `index_data`
   - `macro_econ`
   - `company_performance`
+  - `fund_data`
   - `money_flow`
   - `hot_news_7x24`
+  - `convertible_bond`
+- 已知受外部条件影响的模块：
+  - `company_performance_us`：当前 token 无接口权限
+  - `company_performance_hk`：当前实测出现上游连接超时
+
+## 待办 P0
+
 - 确认 HTTP 模式在真实 MCP 客户端中的兼容性
 - 检查新版 `@modelcontextprotocol/sdk` 下是否需要进一步调整传输层用法
+- 为港股财务接口增加更稳健的超时/重试策略（当前实测存在上游连接超时）
 
 ## 待办 P1
 
