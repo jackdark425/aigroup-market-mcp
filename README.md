@@ -1,5 +1,6 @@
 # 🤖 AIGroup Market MCP Server
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://www.javascript.com/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
@@ -460,9 +461,24 @@ server.registerTool(
 4. 推送分支 (`git push origin feature/AmazingFeature`)
 5. 开启 Pull Request
 
-## 📄 许可证
+## 📄 许可证与使用说明
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+本项目采用 **MIT License**。
+
+这意味着你可以在遵守 MIT 许可证文本的前提下，自由地：
+
+- 使用本项目进行个人或商业用途
+- 复制、修改、合并和分发代码
+- 将本项目作为更大系统的一部分进行二次开发
+- 在保留原始版权与许可证声明的情况下发布衍生版本
+
+请注意：
+
+- **你必须保留** 原仓库中的版权声明与 MIT 许可证文本
+- **本项目按“原样”提供（AS IS）**，作者不对适销性、特定用途适用性或非侵权提供担保
+- 由于本项目会对接第三方数据源（如 Tushare 等），你在生产环境使用时还需要自行遵守相关数据源的服务条款、调用限制和合规要求
+
+完整授权文本见 [LICENSE](LICENSE)。
 
 ## 🙏 致谢
 
