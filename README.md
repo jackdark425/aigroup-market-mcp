@@ -482,8 +482,14 @@ server.registerTool(
 
 ## 🙏 致谢
 
-- **guangxiangdebizi/FinanceMCP**: 本项目在整体方向、金融数据 MCP 组织方式与部分能力设计上参考了该开源项目  
-  仓库地址: https://github.com/guangxiangdebizi/FinanceMCP
+### 参考项目
+
+- **guangxiangdebizi/FinanceMCP**
+  - 仓库地址: https://github.com/guangxiangdebizi/FinanceMCP
+  - 参考范围: 整体产品方向、金融数据 MCP 组织方式、部分能力设计
+
+### 数据与生态支持
+
 - **Tushare**: 优秀的金融数据服务平台
 - **百度新闻**: 丰富的新闻资讯来源
 - **MCP 社区**: 为跨平台工具集成提供的优秀协议
