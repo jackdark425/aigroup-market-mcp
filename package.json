@@ -1,9 +1,13 @@
 {
   "name": "aigroup-market-mcp",
   "version": "2.0.7",
-  "description": "专业的金融数据MCP服务器 - 基于Tushare和百度新闻，提供股票、基金、宏观经济、新闻资讯等全面的金融市场数据查询服务。v2.0.7 修复：统一发布版本号与运行时版本显示，避免 npm 包版本与健康检查版本漂移。",
+  "description": "Financial market data MCP server based on Tushare and finance news sources, covering stocks, funds, macroeconomics, and market intelligence.",
   "type": "module",
-  "author": "Jackdark425@gmail.com",
+  "author": {
+    "name": "AI Group",
+    "email": "jackdark425@gmail.com",
+    "url": "https://github.com/jackdark425"
+  },
   "license": "MIT",
   "keywords": [
     "mcp",
@@ -12,15 +16,12 @@
     "finance",
     "stock",
     "fund",
-    "crypto",
     "financial-data",
     "market-data",
-    "china-stock",
-    "us-stock",
-    "hk-stock",
     "macro-economy",
     "news",
-    "ai-tools"
+    "ai-tools",
+    "typescript"
   ],
   "repository": {
     "type": "git",
