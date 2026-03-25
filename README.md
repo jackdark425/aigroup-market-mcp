@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
-[![Version](https://img.shields.io/badge/version-2.0.7-brightgreen.svg)](https://github.com/jackdark425/aigroup-market-mcp)
+[![Version](https://img.shields.io/badge/version-2.0.8-brightgreen.svg)](https://github.com/jackdark425/aigroup-market-mcp)
 
 > 基于 Tushare 和百度新闻的金融数据 MCP（Model Context Protocol）服务器，面向股票、基金、宏观经济、财经资讯等多类查询场景。
 

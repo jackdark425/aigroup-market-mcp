@@ -1,6 +1,6 @@
 {
   "name": "aigroup-market-mcp",
-  "version": "2.0.7",
+  "version": "2.0.8",
   "description": "Financial market data MCP server based on Tushare and finance news sources, covering stocks, funds, macroeconomics, and market intelligence.",
   "type": "module",
   "author": {
