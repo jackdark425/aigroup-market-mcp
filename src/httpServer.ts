@@ -163,7 +163,8 @@ function jsonSchemaToZod(schema: any): any {
     }
   }
   
-  return zodSchema;
+  // 使用 z.object 包装 schema
+  return z.object(zodSchema);
 }
 
 // 创建 MCP Server 实例
