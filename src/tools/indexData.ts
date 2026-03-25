@@ -36,6 +36,9 @@ export const indexData = {
       // 使用全局配置中的Tushare API设置
       const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
       const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
+      if (!TUSHARE_API_KEY) {
+        throw new Error('缺少 Tushare Token：请在请求头 X-Tushare-Token 或环境变量 TUSHARE_TOKEN 中提供');
+      }
       
       // 默认参数设置
       const today = new Date();
@@ -172,7 +175,8 @@ export const indexData = {
             type: "text",
             text: `# 获取指数${args.code}数据失败\n\n无法从Tushare API获取数据：${error instanceof Error ? error.message : String(error)}\n\n请检查指数代码是否正确，常用指数代码：\n- 上证指数: 000001.SH\n- 深证成指: 399001.SZ\n- 创业板指: 399006.SZ\n- 沪深300: 000300.SH\n- 中证500: 000905.SH`
           }
-        ]
+        ],
+        isError: true
       };
     }
   }

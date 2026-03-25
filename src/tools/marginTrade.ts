@@ -1,4 +1,5 @@
 import { TUSHARE_CONFIG } from '../config.js';
+import { requireTushareToken, requestTushare } from '../utils/tushare.js';
 
 export const marginTrade = {
   name: "margin_trade",
@@ -38,13 +39,7 @@ export const marginTrade = {
   }) {
     try {
       console.log('融资融券数据查询参数:', args);
-      
-      const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
-      const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
-      
-      if (!TUSHARE_API_KEY) {
-        throw new Error('请配置TUSHARE_TOKEN环境变量');
-      }
+      const TUSHARE_API_KEY = requireTushareToken();
 
       let data;
       let formattedOutput;
@@ -52,7 +47,7 @@ export const marginTrade = {
       switch (args.data_type) {
         case 'margin_secs':
           // 融资融券标的（盘前更新）
-          data = await fetchMarginSecs(args, TUSHARE_API_KEY, TUSHARE_API_URL);
+          data = await fetchMarginSecs(args, TUSHARE_API_KEY);
           formattedOutput = formatMarginSecs(data, args);
           break;
           
@@ -61,7 +56,7 @@ export const marginTrade = {
           if (!args.ts_code) {
             throw new Error('融资融券交易汇总查询需要提供股票代码(ts_code)');
           }
-          data = await fetchMarginSummary(args, TUSHARE_API_KEY, TUSHARE_API_URL);
+          data = await fetchMarginSummary(args, TUSHARE_API_KEY);
           formattedOutput = formatMarginSummary(data, args);
           break;
           
@@ -70,13 +65,13 @@ export const marginTrade = {
           if (!args.ts_code) {
             throw new Error('融资融券交易明细查询需要提供股票代码(ts_code)');
           }
-          data = await fetchMarginDetail(args, TUSHARE_API_KEY, TUSHARE_API_URL);
+          data = await fetchMarginDetail(args, TUSHARE_API_KEY);
           formattedOutput = formatMarginDetail(data, args);
           break;
           
         case 'slb_len_mm':
           // 做市借券交易汇总
-          data = await fetchSlbLenMm(args, TUSHARE_API_KEY, TUSHARE_API_URL);
+          data = await fetchSlbLenMm(args, TUSHARE_API_KEY);
           formattedOutput = formatSlbLenMm(data, args);
           break;
           
@@ -98,7 +93,8 @@ export const marginTrade = {
         content: [{ 
           type: "text", 
           text: `查询融资融券数据时发生错误: ${error instanceof Error ? error.message : '未知错误'}` 
-        }]
+        }],
+        isError: true
       };
     }
   }
@@ -107,8 +103,7 @@ export const marginTrade = {
 // 1. 融资融券标的（盘前更新）
 async function fetchMarginSecs(
   args: any,
-  apiKey: string,
-  apiUrl: string
+  apiKey: string
 ) {
   const params = {
     api_name: "margin_secs",
@@ -122,14 +117,13 @@ async function fetchMarginSecs(
     fields: "trade_date,ts_code,name,exchange"
   };
 
-  return await callTushareAPI(params, apiUrl, 'margin_secs');
+  return await callTushareAPI(params, 'margin_secs');
 }
 
 // 2. 融资融券交易汇总
 async function fetchMarginSummary(
   args: any,
-  apiKey: string,
-  apiUrl: string
+  apiKey: string
 ) {
   const params = {
     api_name: "margin",
@@ -142,14 +136,13 @@ async function fetchMarginSummary(
     fields: "trade_date,ts_code,rzye,rzmre,rzche,rqye,rqmcl,rqchl,rzrqye"
   };
 
-  return await callTushareAPI(params, apiUrl, 'margin');
+  return await callTushareAPI(params, 'margin');
 }
 
 // 3. 融资融券交易明细
 async function fetchMarginDetail(
   args: any,
-  apiKey: string,
-  apiUrl: string
+  apiKey: string
 ) {
   const params = {
     api_name: "margin_detail",
@@ -162,14 +155,13 @@ async function fetchMarginDetail(
     fields: "trade_date,ts_code,rzye,rzmre,rqye,rqmcl,rzrqye"
   };
 
-  return await callTushareAPI(params, apiUrl, 'margin_detail');
+  return await callTushareAPI(params, 'margin_detail');
 }
 
 // 4. 做市借券交易汇总
 async function fetchSlbLenMm(
   args: any,
-  apiKey: string,
-  apiUrl: string
+  apiKey: string
 ) {
   const params = {
     api_name: "slb_len_mm",
@@ -182,58 +174,16 @@ async function fetchSlbLenMm(
     fields: "trade_date,ts_code,name,ope_inv,lent_qnt,cls_inv,end_bal"
   };
 
-  return await callTushareAPI(params, apiUrl, 'slb_len_mm');
+  return await callTushareAPI(params, 'slb_len_mm');
 }
 
 // 通用API调用函数
-async function callTushareAPI(params: any, apiUrl: string, apiName: string) {
-  console.log(`请求${apiName}数据，参数:`, params.params);
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
-
-  try {
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(params),
-      signal: controller.signal
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`Tushare API请求失败: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (data.code !== 0) {
-      throw new Error(`Tushare API错误: ${data.msg}`);
-    }
-
-    if (!data.data || !data.data.items || data.data.items.length === 0) {
-      return [];
-    }
-
-    const fieldsArray = data.data.fields;
-    const resultData = data.data.items.map((item: any) => {
-      const result: Record<string, any> = {};
-      fieldsArray.forEach((field: string, index: number) => {
-        result[field] = item[index];
-      });
-      return result;
-    });
-
-    console.log(`成功获取到${resultData.length}条${apiName}数据记录`);
-    return resultData;
-
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
+async function callTushareAPI(params: any, apiName: string) {
+  const result = await requestTushare<Record<string, any>>(params, {
+    allowEmpty: true,
+    logLabel: apiName
+  });
+  return result.data;
 }
 
 // 格式化融资融券标的数据

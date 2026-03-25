@@ -148,10 +148,8 @@ NODE_ENV=development
 
 ## 📚 文档
 
-- [Tushare API 接口对照文档](docs/TUSHARE_API_MAPPING.md)
-- [MCP SDK 升级分析](docs/mcp-sdk-upgrade-analysis.md)
-- [迁移指南](docs/migration-guide.md)
-- [升级总结](UPGRADE_SUMMARY.md)
+- [Tushare API 接口对照文档](https://github.com/jackdark425/aigroup-market-mcp/blob/main/docs/TUSHARE_API_MAPPING.md)
+- [发布指南](https://github.com/jackdark425/aigroup-market-mcp/blob/main/docs/PUBLISH_GUIDE.md)
 
 ## 🏗️ 项目结构
 

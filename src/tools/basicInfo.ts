@@ -52,6 +52,9 @@ export const basicInfo = {
       // 使用全局配置中的Tushare API设置
       const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
       const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
+      if (!TUSHARE_API_KEY) {
+        throw new Error('缺少 Tushare Token：请在请求头 X-Tushare-Token 或环境变量 TUSHARE_TOKEN 中提供');
+      }
       
       // 验证信息类型
       const validInfoTypes = ['stock_basic', 'trade_cal', 'new_share', 'hk_basic', 'us_basic', 'index_basic', 'etf_basic'];
@@ -237,7 +240,8 @@ export const basicInfo = {
             type: "text",
             text: `## ❌ 获取${args.info_type}基础信息失败\n\n错误信息: ${error instanceof Error ? error.message : String(error)}\n\n### 支持的信息类型:\n\n- **stock_basic**: A股股票列表\n- **trade_cal**: 交易日历\n- **new_share**: 新股列表\n- **hk_basic**: 港股列表\n- **us_basic**: 美股列表\n- **index_basic**: 指数列表\n- **etf_basic**: ETF列表\n\n### 使用示例:\n\n\`\`\`json\n{\n  "info_type": "stock_basic",\n  "exchange": "SSE",\n  "list_status": "L"\n}\n\`\`\`\n\n\`\`\`json\n{\n  "info_type": "trade_cal",\n  "exchange": "SSE",\n  "start_date": "20240101",\n  "end_date": "20241231"\n}\n\`\`\``
           }
-        ]
+        ],
+        isError: true
       };
     }
   }

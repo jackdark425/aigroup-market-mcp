@@ -36,6 +36,9 @@ export const macroEcon = {
       // 使用全局配置中的Tushare API设置
       const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
       const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
+      if (!TUSHARE_API_KEY) {
+        throw new Error('缺少 Tushare Token：请在请求头 X-Tushare-Token 或环境变量 TUSHARE_TOKEN 中提供');
+      }
       
       // 验证指标类型
       const validIndicators = ['shibor', 'lpr', 'gdp', 'cpi', 'ppi', 'cn_m', 'cn_pmi', 'sf_month', 'shibor_quote', 'libor', 'hibor'];

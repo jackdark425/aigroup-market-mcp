@@ -1,10 +1,12 @@
 import * as dotenv from 'dotenv';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { createLogger } from './utils/logger.js';
 
 // 加载环境变量：
 // 1. 本地开发时，从.env文件加载
 // 2. 在Smithery部署时，从配置文件中加载
 dotenv.config();
+const logger = createLogger(process.env.MCP_TRANSPORT === 'stdio' ? 'stdio' : 'http');
 
 // 每请求上下文：用于透传用户在 Header 中提交的 Token（Tushare / CoinGecko）
 type RequestContext = { tushareToken?: string; coingeckoApiKey?: string; coingeckoProApiKey?: string; coingeckoDemoApiKey?: string };
@@ -191,7 +193,7 @@ export function validateConfig(cfg: AppConfig): void {
 try {
   validateConfig(config);
 } catch (error) {
-  console.error('配置验证失败:', error instanceof Error ? error.message : String(error));
+  logger.error('配置验证失败:', error instanceof Error ? error.message : String(error));
   throw error;
 }
 
@@ -199,10 +201,10 @@ try {
 if (process.env.NODE_ENV !== 'production') {
   const fromTs = getRequestToken() ? 'request-header' : (process.env.TUSHARE_TOKEN ? 'env' : 'none');
   const fromCg = getCoinGeckoProApiKey() ? 'request-pro-header/env' : (getCoinGeckoApiKey() ? 'request-std-header/env' : 'none');
-  console.log('Tushare token source:', fromTs);
-  console.log('CoinGecko key source:', fromCg);
-  console.log('Configuration loaded successfully');
-  console.log('- Binance API:', config.api.binance.baseUrl);
-  console.log('- Default page size:', config.pagination.defaultPageSize);
-  console.log('- Export path:', config.export.defaultExportPath);
+  logger.info('Tushare token source:', fromTs);
+  logger.info('CoinGecko key source:', fromCg);
+  logger.info('Configuration loaded successfully');
+  logger.info('- Binance API:', config.api.binance.baseUrl);
+  logger.info('- Default page size:', config.pagination.defaultPageSize);
+  logger.info('- Export path:', config.export.defaultExportPath);
 }

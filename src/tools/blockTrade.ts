@@ -1,5 +1,6 @@
 import { TUSHARE_CONFIG } from '../config.js';
 import { resolveStockCodes } from '../utils/stockCodeResolver.js';
+import { requireTushareToken, requestTushare } from '../utils/tushare.js';
 
 export const blockTrade = {
   name: "block_trade",
@@ -25,13 +26,7 @@ export const blockTrade = {
   async run(args: { code?: string; start_date: string; end_date: string }) {
     try {
       console.log('大宗交易查询参数:', args);
-      
-      const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
-      const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
-      
-      if (!TUSHARE_API_KEY) {
-        throw new Error('请配置TUSHARE_TOKEN环境变量');
-      }
+      const TUSHARE_API_KEY = requireTushareToken();
 
       // 构建请求参数
       const requestParams: any = {
@@ -50,69 +45,26 @@ export const blockTrade = {
         params: requestParams
         // 不设置fields参数，返回所有字段
       };
+      const { data: tradeData } = await requestTushare<Record<string, any>>(params, {
+        allowEmpty: true,
+        logLabel: 'block_trade'
+      });
 
-      console.log(`请求大宗交易数据，API: block_trade，参数:`, params.params);
-
-      // 设置请求超时
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
-
-      try {
-        const response = await fetch(TUSHARE_API_URL!, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(params),
-          signal: controller.signal
-        });
-
-        clearTimeout(timeoutId);
-
-        if (!response.ok) {
-          throw new Error(`Tushare API请求失败: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.code !== 0) {
-          throw new Error(`Tushare API错误: ${data.msg}`);
-        }
-
-        if (!data.data || !data.data.items || data.data.items.length === 0) {
-          return {
-            content: [{ 
-              type: "text", 
-              text: `# 📊 ${args.code || '全市场'} 大宗交易数据\n\n查询期间: ${args.start_date} - ${args.end_date}\n\n❌ 暂无大宗交易记录\n\n在指定时间范围内，${args.code ? '该股票' : '全市场'}没有大宗交易数据。` 
-            }]
-          };
-        }
-
-        // 获取字段名
-        const fieldsArray = data.data.fields;
-
-        // 将数据转换为对象数组
-        const tradeData = data.data.items.map((item: any) => {
-          const result: Record<string, any> = {};
-          fieldsArray.forEach((field: string, index: number) => {
-            result[field] = item[index];
-          });
-          return result;
-        });
-
-        console.log(`成功获取到${tradeData.length}条大宗交易记录`);
-
-        // 格式化输出
-        const formattedOutput = await formatBlockTradeData(tradeData, args.code || '全市场', args.start_date, args.end_date);
-        
+      if (tradeData.length === 0) {
         return {
-          content: [{ type: "text", text: formattedOutput }]
+          content: [{ 
+            type: "text", 
+            text: `# 📊 ${args.code || '全市场'} 大宗交易数据\n\n查询期间: ${args.start_date} - ${args.end_date}\n\n❌ 暂无大宗交易记录\n\n在指定时间范围内，${args.code ? '该股票' : '全市场'}没有大宗交易数据。` 
+          }]
         };
-
-      } catch (error) {
-        clearTimeout(timeoutId);
-        throw error;
       }
+
+      // 格式化输出
+      const formattedOutput = await formatBlockTradeData(tradeData, args.code || '全市场', args.start_date, args.end_date);
+      
+      return {
+        content: [{ type: "text", text: formattedOutput }]
+      };
 
     } catch (error) {
       console.error('大宗交易查询错误:', error);
@@ -120,7 +72,8 @@ export const blockTrade = {
         content: [{ 
           type: "text", 
           text: `查询大宗交易数据时发生错误: ${error instanceof Error ? error.message : '未知错误'}` 
-        }]
+        }],
+        isError: true
       };
     }
   }

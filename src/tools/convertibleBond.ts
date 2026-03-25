@@ -1,4 +1,5 @@
 import { TUSHARE_CONFIG } from '../config.js';
+import { requireTushareToken, requestTushare } from '../utils/tushare.js';
 
 export const convertibleBond = {
   name: "convertible_bond",
@@ -34,13 +35,7 @@ export const convertibleBond = {
   }) {
     try {
       console.log('可转债数据查询参数:', args);
-      
-      const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
-      const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
-      
-      if (!TUSHARE_API_KEY) {
-        throw new Error('请配置TUSHARE_TOKEN环境变量');
-      }
+      const TUSHARE_API_KEY = requireTushareToken();
 
       // 默认日期设置
       const today = new Date();
@@ -62,8 +57,7 @@ export const convertibleBond = {
             args.ts_code,
             args.start_date || defaultStartDate,
             args.end_date || defaultEndDate,
-            TUSHARE_API_KEY,
-            TUSHARE_API_URL
+            TUSHARE_API_KEY
           );
           
           if (result.data && result.data.length > 0) {
@@ -99,7 +93,8 @@ export const convertibleBond = {
         content: [{ 
           type: "text", 
           text: `查询可转债数据时发生错误: ${error instanceof Error ? error.message : '未知错误'}` 
-        }]
+        }],
+        isError: true
       };
     }
   }
@@ -111,8 +106,7 @@ async function fetchConvertibleBondData(
   tsCode?: string,
   startDate?: string,
   endDate?: string,
-  apiKey?: string,
-  apiUrl?: string
+  apiKey?: string
 ) {
   const apiConfigs: Record<string, any> = {
     basic: {
@@ -154,58 +148,10 @@ async function fetchConvertibleBondData(
   }
 
   // 设置请求超时
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
-
-  try {
-    console.log(`请求Tushare API: ${params.api_name}，参数:`, params.params);
-    
-    // 发送请求
-    const response = await fetch(apiUrl!, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(params),
-      signal: controller.signal
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Tushare API请求失败: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // 处理响应数据
-    if (data.code !== 0) {
-      throw new Error(`Tushare API错误: ${data.msg}`);
-    }
-    
-    // 确保data.data和data.data.items存在
-    if (!data.data || !data.data.items) {
-      throw new Error(`未找到${dataType}数据`);
-    }
-    
-    // 获取字段名
-    const fields = data.data.fields;
-    
-    // 将数据转换为对象数组
-    const convertedData = data.data.items.map((item: any) => {
-      const result: Record<string, any> = {};
-      fields.forEach((field: string, index: number) => {
-        result[field] = item[index];
-      });
-      return result;
-    });
-    
-    return {
-      data: convertedData,
-      fields: fields
-    };
-
-  } finally {
-    clearTimeout(timeoutId);
-  }
+  return requestTushare<Record<string, any>>(params, {
+    allowEmpty: true,
+    logLabel: params.api_name
+  });
 }
 
 // 格式化可转债数据输出

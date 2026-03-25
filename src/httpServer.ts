@@ -9,6 +9,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { z } from 'zod';
 import { runWithRequestContext } from './config.js';
+import { createLogger } from './utils/logger.js';
 
 // 导入所有工具
 import { financeNews } from './tools/financeNews.js';
@@ -32,6 +33,14 @@ import { basicInfo } from './tools/basicInfo.js';
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
+const logger = createLogger('http');
+
+type RequestAuthContext = {
+  tushareToken?: string;
+  coingeckoApiKey?: string;
+  coingeckoProApiKey?: string;
+  coingeckoDemoApiKey?: string;
+};
 
 // CORS 配置
 app.use(cors({
@@ -44,6 +53,9 @@ app.use(cors({
     'Mcp-Session-Id',
     'X-Api-Key',
     'X-Tushare-Token',
+    'X-Cg-Api-Key',
+    'X-Cg-Pro-Api-Key',
+    'X-Cg-Demo-Api-Key',
     'X-Smithery-Config',
     'X-Config',
     'X-Session-Config'
@@ -53,32 +65,64 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
-// 提取 Token 的辅助函数
-function extractTokenFromHeaders(req: Request): string | undefined {
+// 提取认证上下文的辅助函数
+function extractRequestAuthContext(req: Request): RequestAuthContext {
   const h = req.headers;
-  
-  const tokenHeader = (h['x-tushare-token'] || h['x-api-key']) as string | undefined;
-  if (tokenHeader?.trim()) return tokenHeader.trim();
-  
+  const ctx: RequestAuthContext = {};
+
+  const tushareToken = (h['x-tushare-token'] || h['x-api-key']) as string | undefined;
+  if (tushareToken?.trim()) {
+    ctx.tushareToken = tushareToken.trim();
+  }
+
+  const coingeckoApiKey = h['x-cg-api-key'] as string | undefined;
+  if (coingeckoApiKey?.trim()) {
+    ctx.coingeckoApiKey = coingeckoApiKey.trim();
+  }
+
+  const coingeckoProApiKey = h['x-cg-pro-api-key'] as string | undefined;
+  if (coingeckoProApiKey?.trim()) {
+    ctx.coingeckoProApiKey = coingeckoProApiKey.trim();
+  }
+
+  const coingeckoDemoApiKey = h['x-cg-demo-api-key'] as string | undefined;
+  if (coingeckoDemoApiKey?.trim()) {
+    ctx.coingeckoDemoApiKey = coingeckoDemoApiKey.trim();
+  }
+
   const auth = h['authorization'];
   if (typeof auth === 'string' && auth.toLowerCase().startsWith('bearer ')) {
-    return auth.slice(7).trim();
+    ctx.tushareToken ??= auth.slice(7).trim();
   }
-  
+
   const smitheryConfig = h['x-smithery-config'] || h['x-config'] || h['x-session-config'];
   if (smitheryConfig) {
     try {
       const config = JSON.parse(smitheryConfig as string);
-      if (config.TUSHARE_TOKEN) return config.TUSHARE_TOKEN;
-    } catch (e) {}
+      ctx.tushareToken ??= config.TUSHARE_TOKEN || config.tushareToken;
+      ctx.coingeckoApiKey ??= config.COINGECKO_API_KEY || config.coingeckoApiKey;
+      ctx.coingeckoProApiKey ??= config.COINGECKO_PRO_API_KEY || config.coingeckoProApiKey;
+      ctx.coingeckoDemoApiKey ??= config.COINGECKO_DEMO_API_KEY || config.coingeckoDemoApiKey;
+    } catch (error) {
+      logger.warn('解析 Smithery 配置失败，将忽略配置头:', error instanceof Error ? error.message : String(error));
+    }
   }
-  
+
   const query = req.query;
   if (query.tushare_token || query.TUSHARE_TOKEN) {
-    return (query.tushare_token || query.TUSHARE_TOKEN) as string;
+    ctx.tushareToken ??= (query.tushare_token || query.TUSHARE_TOKEN) as string;
   }
-  
-  return undefined;
+  if (query.coingecko_api_key || query.COINGECKO_API_KEY) {
+    ctx.coingeckoApiKey ??= (query.coingecko_api_key || query.COINGECKO_API_KEY) as string;
+  }
+  if (query.coingecko_pro_api_key || query.COINGECKO_PRO_API_KEY) {
+    ctx.coingeckoProApiKey ??= (query.coingecko_pro_api_key || query.COINGECKO_PRO_API_KEY) as string;
+  }
+  if (query.coingecko_demo_api_key || query.COINGECKO_DEMO_API_KEY) {
+    ctx.coingeckoDemoApiKey ??= (query.coingecko_demo_api_key || query.COINGECKO_DEMO_API_KEY) as string;
+  }
+
+  return ctx;
 }
 
 // JSON Schema 转 Zod 辅助函数
@@ -250,15 +294,15 @@ app.post('/mcp', async (req: Request, res: Response) => {
       transport.close();
     });
 
-    const token = extractTokenFromHeaders(req);
+    const authContext = extractRequestAuthContext(req);
     
-    await runWithRequestContext({ tushareToken: token }, async () => {
+    await runWithRequestContext(authContext, async () => {
       await server.connect(transport);
       await transport.handleRequest(req, res, req.body);
     });
     
   } catch (error) {
-    console.error('处理 MCP 请求时发生错误:', error);
+    logger.error('处理 MCP 请求时发生错误:', error);
     
     if (!res.headersSent) {
       res.status(500).json({
@@ -274,21 +318,30 @@ app.post('/mcp', async (req: Request, res: Response) => {
 });
 
 // 启动服务器
-app.listen(PORT, () => {
-  console.log('\n' + '='.repeat(70));
-  console.log('🚀 aigroup-market-mcp Streamable HTTP Server v2.0 Started');
-  console.log('='.repeat(70));
-  console.log(`📍 Server URL:        http://localhost:${PORT}`);
-  console.log(`📡 MCP Endpoint:      http://localhost:${PORT}/mcp`);
-  console.log(`💚 Health Check:      http://localhost:${PORT}/health`);
-  console.log('='.repeat(70));
-  console.log('✨ 新功能:');
-  console.log('   • McpServer 高级 API');
-  console.log('   • StreamableHTTPServerTransport');
-  console.log('   • Zod schema 验证');
-  console.log('   • 通知防抖优化');
-  console.log(`   • ${tools.length + 1} 个工具已注册`);
-  console.log('='.repeat(70));
-  console.log('📝 Server is ready to accept connections');
-  console.log('='.repeat(70) + '\n');
+const httpServer = app.listen(PORT, () => {
+  logger.info('\n' + '='.repeat(70));
+  logger.info('🚀 aigroup-market-mcp Streamable HTTP Server v2.0 Started');
+  logger.info('='.repeat(70));
+  logger.info(`📍 Server URL:        http://localhost:${PORT}`);
+  logger.info(`📡 MCP Endpoint:      http://localhost:${PORT}/mcp`);
+  logger.info(`💚 Health Check:      http://localhost:${PORT}/health`);
+  logger.info('='.repeat(70));
+  logger.info('✨ 新功能:');
+  logger.info('   • McpServer 高级 API');
+  logger.info('   • StreamableHTTPServerTransport');
+  logger.info('   • Zod schema 验证');
+  logger.info('   • 通知防抖优化');
+  logger.info(`   • ${tools.length + 1} 个工具已注册`);
+  logger.info('='.repeat(70));
+  logger.info('📝 Server is ready to accept connections');
+  logger.info('='.repeat(70) + '\n');
+});
+
+httpServer.on('error', (error: NodeJS.ErrnoException) => {
+  if (error.code === 'EADDRINUSE') {
+    logger.error(`HTTP Server 启动失败: 端口 ${PORT} 已被占用`);
+  } else {
+    logger.error('HTTP Server 启动失败:', error);
+  }
+  process.exit(1);
 });

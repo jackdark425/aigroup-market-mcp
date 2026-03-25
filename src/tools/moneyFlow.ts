@@ -1,4 +1,5 @@
 import { TUSHARE_CONFIG } from '../config.js';
+import { requireTushareToken, requestTushare } from '../utils/tushare.js';
 
 export const moneyFlow = {
   name: "money_flow",
@@ -28,13 +29,7 @@ export const moneyFlow = {
   }) {
     try {
       console.log('资金流向数据查询参数:', args);
-      
-      const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
-      const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
-      
-      if (!TUSHARE_API_KEY) {
-        throw new Error('请配置TUSHARE_TOKEN环境变量');
-      }
+      const TUSHARE_API_KEY = requireTushareToken();
 
       // 判断查询类型：个股 or 大盘
       const isMarketFlow = !args.ts_code || args.ts_code.trim() === '';
@@ -45,8 +40,7 @@ export const moneyFlow = {
         result = await fetchMarketMoneyFlow(
           args.start_date,
           args.end_date,
-          TUSHARE_API_KEY,
-          TUSHARE_API_URL
+          TUSHARE_API_KEY
         );
       } else {
         // 查询个股资金流向
@@ -54,8 +48,7 @@ export const moneyFlow = {
           args.ts_code!,
           args.start_date,
           args.end_date,
-          TUSHARE_API_KEY,
-          TUSHARE_API_URL
+          TUSHARE_API_KEY
         );
       }
 
@@ -77,7 +70,8 @@ export const moneyFlow = {
         content: [{ 
           type: "text", 
           text: `查询资金流向数据时发生错误: ${error instanceof Error ? error.message : '未知错误'}` 
-        }]
+        }],
+        isError: true
       };
     }
   }
@@ -87,8 +81,7 @@ export const moneyFlow = {
 async function fetchMarketMoneyFlow(
   startDate: string,
   endDate: string,
-  apiKey: string,
-  apiUrl: string
+  apiKey: string
 ) {
   const params = {
     api_name: "moneyflow_mkt_dc",
@@ -100,7 +93,7 @@ async function fetchMarketMoneyFlow(
     fields: "trade_date,close_sh,pct_change_sh,close_sz,pct_change_sz,net_amount,net_amount_rate,buy_elg_amount,buy_elg_amount_rate,buy_lg_amount,buy_lg_amount_rate,buy_md_amount,buy_md_amount_rate,buy_sm_amount,buy_sm_amount_rate"
   };
 
-  return await callTushareAPI(params, apiUrl);
+  return await callTushareAPI(params, 'moneyflow_mkt_dc');
 }
 
 // 获取个股资金流向数据
@@ -108,8 +101,7 @@ async function fetchStockMoneyFlow(
   tsCode: string,
   startDate: string,
   endDate: string,
-  apiKey: string,
-  apiUrl: string
+  apiKey: string
 ) {
   const params = {
     api_name: "moneyflow_dc",
@@ -122,62 +114,12 @@ async function fetchStockMoneyFlow(
     fields: "ts_code,trade_date,close,pct_change,net_amount,net_amount_rate,buy_elg_amount,buy_elg_amount_rate,buy_lg_amount,buy_lg_amount_rate,buy_md_amount,buy_md_amount_rate,buy_sm_amount,buy_sm_amount_rate"
   };
 
-  return await callTushareAPI(params, apiUrl);
+  return await callTushareAPI(params, 'moneyflow_dc');
 }
 
 // 调用Tushare API的通用函数
-async function callTushareAPI(params: any, apiUrl: string) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), TUSHARE_CONFIG.TIMEOUT);
-
-  try {
-    console.log(`请求Tushare API: ${params.api_name}，参数:`, params.params);
-    
-    const response = await fetch(apiUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(params),
-      signal: controller.signal
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Tushare API请求失败: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (data.code !== 0) {
-      throw new Error(`Tushare API错误: ${data.msg}`);
-    }
-    
-    if (!data.data || !data.data.items) {
-      throw new Error(`未找到资金流向数据`);
-    }
-    
-    // 获取字段名
-    const fields = data.data.fields;
-    
-    // 将数据转换为对象数组
-    const convertedData = data.data.items.map((item: any) => {
-      const result: Record<string, any> = {};
-      fields.forEach((field: string, index: number) => {
-        result[field] = item[index];
-      });
-      return result;
-    });
-    
-    console.log(`成功获取到${convertedData.length}条资金流向数据记录`);
-    
-    return {
-      data: convertedData,
-      fields: fields
-    };
-    
-  } finally {
-    clearTimeout(timeoutId);
-  }
+async function callTushareAPI(params: any, logLabel: string) {
+  return requestTushare<Record<string, any>>(params, { logLabel });
 }
 
 // 格式化资金流向数据输出

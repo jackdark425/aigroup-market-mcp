@@ -42,13 +42,39 @@ export const stockDataMinutes = {
       const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
       const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
 
-      // 归一化时间：转为 YYYYMMDDHHmmss（剔除非数字）
-      const normalizeDT = (v: string) => v.replace(/[^0-9]/g, '').padEnd(14, '0').slice(0, 14);
-      const startTime = normalizeDT(args.start_datetime);
-      const endTime = normalizeDT(args.end_datetime);
-      if (startTime.length !== 14 || endTime.length !== 14) {
-        throw new Error('起止时间格式不正确，请使用 YYYYMMDDHHmmss 或 YYYY-MM-DD HH:mm:ss');
-      }
+      const normalizeDT = (value: string, fieldName: string): string => {
+        const digits = String(value || '').replace(/[^0-9]/g, '');
+        if (digits.length !== 14) {
+          throw new Error(`${fieldName}格式不正确，请使用 YYYYMMDDHHmmss 或 YYYY-MM-DD HH:mm:ss`);
+        }
+
+        const year = Number(digits.slice(0, 4));
+        const month = Number(digits.slice(4, 6));
+        const day = Number(digits.slice(6, 8));
+        const hour = Number(digits.slice(8, 10));
+        const minute = Number(digits.slice(10, 12));
+        const second = Number(digits.slice(12, 14));
+        const timestamp = Date.UTC(year, month - 1, day, hour, minute, second, 0);
+        const probe = new Date(timestamp);
+
+        const isValidDate =
+          Number.isFinite(timestamp) &&
+          probe.getUTCFullYear() === year &&
+          probe.getUTCMonth() + 1 === month &&
+          probe.getUTCDate() === day &&
+          probe.getUTCHours() === hour &&
+          probe.getUTCMinutes() === minute &&
+          probe.getUTCSeconds() === second;
+
+        if (!isValidDate) {
+          throw new Error(`${fieldName}不是有效日期时间: ${value}`);
+        }
+
+        return digits;
+      };
+
+      const startTime = normalizeDT(args.start_datetime, '起始时间');
+      const endTime = normalizeDT(args.end_datetime, '结束时间');
       if (endTime <= startTime) {
         throw new Error('结束时间必须大于起始时间');
       }
@@ -168,11 +194,10 @@ export const stockDataMinutes = {
           if (market === 'cn') {
             stockExplanation = await resolveStockCodes([args.code]);
           }
-          
+
           return { content: [{ type: 'text', text: out + stockExplanation }] };
         } finally {
-          // 兜底清理
-          // clearTimeout 在 try 内处理；此处确保未走到前面时也释放
+          clearTimeout(timeoutId);
         }
       }
 

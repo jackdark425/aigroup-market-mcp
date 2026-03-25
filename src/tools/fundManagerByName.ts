@@ -363,6 +363,9 @@ export async function runFundManagerByName(args: {
   try {
     const TUSHARE_API_KEY = TUSHARE_CONFIG.API_TOKEN;
     const TUSHARE_API_URL = TUSHARE_CONFIG.API_URL;
+    if (!TUSHARE_API_KEY) {
+      throw new Error('缺少 Tushare Token：请在请求头 X-Tushare-Token 或环境变量 TUSHARE_TOKEN 中提供');
+    }
 
     const data = await fetchFundManagerData(
       args.name,
@@ -379,7 +382,8 @@ export async function runFundManagerByName(args: {
 
   } catch (error) {
     return {
-      content: [{ type: "text", text: `查询基金经理信息时发生错误: ${error instanceof Error ? error.message : String(error)}` }]
+      content: [{ type: "text", text: `查询基金经理信息时发生错误: ${error instanceof Error ? error.message : String(error)}` }],
+      isError: true
     };
   }
-} 
+}
