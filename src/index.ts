@@ -208,16 +208,10 @@ async function main() {
     );
   });
 
-  logger.info('🚀 aigroup-market-mcp Server v2.0 启动中...');
-  logger.info('✅ 使用 McpServer 高级 API');
-  logger.info('✅ Zod schema 验证已启用');
-  logger.info('⚡ 通知防抖优化已启用');
-  
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  
-  logger.info('✅ aigroup-market-mcp Server 已成功连接（stdio 传输）');
-  logger.info(`🔧 已注册工具数量: ${tools.length + 1}`);
+
+  logger.info(`aigroup-market-mcp ready (${tools.length + 1} tools registered)`);
 }
 
 main().catch((error) => {
